@@ -24,7 +24,7 @@ export class MeanCacheProblemController {
         @Body() { value }: AddRecordDto,
     ): Promise<void> {
         const fingerprint = req.cookies['fingerprint'];
-        logger.log(
+        this.logger.log(
             `Adding record with value: ${value} to the fingerprint: ${fingerprint}`,
         );
         this.meanCacheService.addRecord(fingerprint, value);
@@ -39,7 +39,7 @@ export class MeanCacheProblemController {
     @ApiTags('mean-cache-problem')
     async calculateMean(@Req() req: any): Promise<number> {
         const fingerprint = req.cookies['fingerprint'];
-        logger.log(`Calculating mean for the fingerprint: ${fingerprint}`);
+        this.logger.log(`Calculating mean for the fingerprint: ${fingerprint}`);
         return this.meanCacheService.calculateMean(fingerprint);
     }
 
@@ -61,7 +61,9 @@ export class MeanCacheProblemController {
         if (!fingerprint) {
             fingerprint = uuidv4();
         }
-        logger.log(`Initializing service with fingerprint: ${fingerprint}`);
+        this.logger.log(
+            `Initializing service with fingerprint: ${fingerprint}`,
+        );
         this.meanCacheService.initialize(fingerprint);
         res.cookie('fingerprint', fingerprint, {
             httpOnly: true,
