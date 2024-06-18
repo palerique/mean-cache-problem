@@ -1,102 +1,215 @@
-import Image from "next/image";
-import { Button } from "@repo/ui/button";
-import styles from "./page.module.css";
+"use client";
+import {useEffect, useState} from "react";
+import Deque from "double-ended-queue";
+
+interface Record {
+    expirationTimestamp: number;
+    value: number;
+}
 
 export default function Home() {
-  return (
-    <div className={styles.page}>
-      <main className={styles.main}>
-        <Image
-          className={styles.logo}
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol>
-          <li>
-            Get started by editing <code>app/page.tsx</code>
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+    const [value, setValue] = useState("");
+    const [randomValue, setRandomValue] = useState(false);
+    const [expirationDuration, setExpirationDuration] = useState(300); // Default 5 minutes
+    const [deque, setDeque] = useState(new Deque<Record>());
+    const [runningSum, setRunningSum] = useState(0);
+    const [mean, setMean] = useState(0);
+    const [showScroll, setShowScroll] = useState(false);
 
-        <div className={styles.ctas}>
-          <a
-            className={styles.primary}
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className={styles.logo}
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-            className={styles.secondary}
-          >
-            Read our docs
-          </a>
+    const checkScrollTop = () => {
+        if (!showScroll && window.pageYOffset > 400) {
+            setShowScroll(true);
+        } else if (showScroll && window.pageYOffset <= 400) {
+            setShowScroll(false);
+        }
+    };
+
+    const scrollTop = () => {
+        window.scrollTo({top: 0, behavior: "smooth"});
+    };
+
+    useEffect(() => {
+        window.addEventListener("scroll", checkScrollTop);
+        return () => window.removeEventListener("scroll", checkScrollTop);
+    }, [showScroll]);
+
+    useEffect(() => {
+        expireRecords();
+    }, [deque]);
+
+    const addRecord = () => {
+        const valueToAdd = randomValue
+            ? Math.floor(Math.random() * 100) + 1
+            : parseInt(value);
+        const expirationTimestamp = Date.now() + expirationDuration * 1000; // Current time + expiration duration in ms
+        setDeque((prevDeque) => {
+            const newDeque = new Deque(prevDeque.toArray());
+            newDeque.push({expirationTimestamp, value: valueToAdd});
+            return newDeque;
+        });
+        setRunningSum((prevSum) => prevSum + valueToAdd);
+    };
+
+    const expireRecords = () => {
+        const currentTime = Date.now();
+        setDeque((prevDeque) => {
+            const newDeque = new Deque(prevDeque.toArray());
+            let sumAdjustment = 0;
+            while (
+                newDeque.length > 0 &&
+                currentTime > newDeque.peekFront().expirationTimestamp
+                ) {
+                const expiredRecord = newDeque.shift();
+                sumAdjustment += expiredRecord.value;
+            }
+            setRunningSum((prevSum) => prevSum - sumAdjustment);
+            return newDeque;
+        });
+    };
+
+    const calculateMean = () => {
+        expireRecords();
+        if (deque.length === 0) {
+            setMean(0);
+        } else {
+            setMean(runningSum / deque.length);
+        }
+    };
+
+    const formatTimestamp = (timestamp: number) => {
+        const date = new Date(timestamp);
+        return date.toLocaleString();
+    };
+
+    return (
+        <div
+            className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-r from-green-400 via-blue-500 to-purple-600 text-white">
+            <h1 className="text-5xl font-bold mb-10">
+                Mean Cache Problem Solver
+            </h1>
+            <div className="flex flex-row w-full justify-center">
+                <div className="bg-white text-black p-8 rounded-lg shadow-md mr-10">
+                    <div className="mb-4">
+                        <label className="block text-sm font-medium mb-2">
+                            Value
+                        </label>
+                        <input
+                            type="number"
+                            value={value}
+                            onChange={(e) => setValue(e.target.value)}
+                            disabled={randomValue}
+                            className="w-full px-4 py-2 rounded-lg border focus:ring focus:border-blue-300"
+                        />
+                    </div>
+                    <div className="mb-4 flex items-center">
+                        <input
+                            type="checkbox"
+                            checked={randomValue}
+                            onChange={() => setRandomValue(!randomValue)}
+                            className="mr-2"
+                        />
+                        <label className="text-sm font-medium">
+                            Use Random Value
+                        </label>
+                    </div>
+                    <div className="mb-4">
+                        <label className="block text-sm font-medium mb-2">
+                            Expiration Duration (seconds)
+                        </label>
+                        <input
+                            type="number"
+                            value={expirationDuration}
+                            onChange={(e) =>
+                                setExpirationDuration(parseInt(e.target.value))
+                            }
+                            className="w-full px-4 py-2 rounded-lg border focus:ring focus:border-blue-300"
+                        />
+                    </div>
+                    <button
+                        onClick={addRecord}
+                        className="w-full bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg"
+                    >
+                        Add Record
+                    </button>
+                    <button
+                        onClick={calculateMean}
+                        className="w-full bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg mt-4"
+                    >
+                        Calculate Mean
+                    </button>
+                </div>
+            </div>
+            <div className="mt-10 w-full flex flex-col items-center">
+                <h2 className="text-3xl font-bold mb-6">Cache State</h2>
+                <div className="bg-white text-black p-4 mb-4 rounded-lg shadow-md">
+                    <div>Running Sum: {runningSum}</div>
+                    <div>Mean: {mean}</div>
+                    <div>
+                        <h3 className="text-2xl font-bold mb-4">Deque</h3>
+                        <div className="flex">
+                            {deque.toArray().map((record, index) => (
+                                <div
+                                    key={index}
+                                    className={`bg-blue-500 text-white p-4 m-2 rounded-lg shadow-md transition-transform duration-1000 ${index === 0 ? "scale-110" : "scale-100"}`}
+                                >
+                                    <div>Value: {record.value}</div>
+                                    <div>
+                                        Expiration:{" "}
+                                        {formatTimestamp(
+                                            record.expirationTimestamp,
+                                        )}
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <footer
+                className="fixed inset-x-0 bottom-0 w-full text-center border-t border-grey p-4 bg-amber-500 text-blue-950">
+                <div className="flex justify-center space-x-4 mt-4">
+                    <a
+                        href="http://localhost:3002/api#/"
+                        target="_blank"
+                        rel="noreferrer"
+                        className="hover:text-amber-950"
+                    >
+                        API Documentation
+                    </a>
+                    <a
+                        href="https://github.com/palerique/meancacheproblem"
+                        target="_blank"
+                        rel="noreferrer"
+                        className="hover:text-amber-950"
+                    >
+                        Git Repository
+                    </a>
+                    <a
+                        href="http://localhost:8380/kiali/console/graph/namespaces/?traffic=grpc%2CgrpcRequest%2Chttp%2ChttpRequest%2Ctcp%2CtcpSent&graphType=versionedApp&namespaces=default%2Cistio-system&duration=1800&refresh=10000&layout=kiali-dagre&namespaceLayout=kiali-dagre&edges=trafficDistribution%2CtrafficRate%2Cthroughput%2CthroughputRequest%2CresponseTime%2Crt95&animation=true"
+                        target="_blank"
+                        rel="noreferrer"
+                        className="hover:text-amber-950"
+                    >
+                        Kiali
+                    </a>
+                    <a
+                        href="https://www.linkedin.com/in/palerique/"
+                        target="_blank"
+                        rel="noreferrer"
+                        className="hover:text-amber-950"
+                    >
+                        Find me on LinkedIn
+                    </a>
+                </div>
+            </footer>
+            {showScroll && (
+                <button
+                    className="fixed right-2 bottom-20 bg-blue-500 text-white p-2 rounded-full"
+                    onClick={scrollTop}
+                >
+                    ^ Top
+                </button>
+            )}
         </div>
-        <Button
-          appName="web"
-          className="mx-auto rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-        >
-          Open alert
-        </Button>
-      </main>
-      <footer className={styles.footer}>
-        <a
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file-text.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
-  );
+    );
 }

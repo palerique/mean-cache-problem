@@ -1,0 +1,67 @@
+name: Application CI
+on:
+  push:
+    branches:
+      - develop
+
+jobs:
+  build:
+    name: Build and Test
+    timeout-minutes: 15
+    runs-on: ubuntu-latest
+    permissions: write-all
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - uses: webiny/action-conventional-commits@v1.3.0
+        if: github.event_name == 'pull_request'
+
+      - uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js environment
+        uses: actions/setup-node@v4
+        with:
+          node-version: "lts/*"
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Build
+        run: pnpm build
+
+      - name: Test
+        run: pnpm test
+
+      - name: Run Semantic Release
+        run: |
+          rm -rf build/libs/*.jar
+          npm ci
+          npx semantic-release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SIGNING_KEY: ${{ secrets.SIGNING_KEY }}
+          SIGNING_PASSWORD: ${{ secrets.SIGNING_PASSWORD }}
+
+  # TODO      - uses: actions/upload-artifact@v4
+  #        if: always()
+  #        with:
+  #          name: reports
+  #          path: "**/build/reports"
+
+  dependency-submission:
+
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      # Note: You might need to adjust this step regarding your project needs.
+      #       There is not an exact pnpm equivalent for the gradle dependency-submission step.
+      - name: Install dependencies
+        run: pnpm install

@@ -1,19 +1,50 @@
 {
-  "name": "mean-cache-problem",
-  "private": true,
-  "scripts": {
-    "build": "turbo build",
-    "dev": "turbo dev",
-    "lint": "turbo lint",
-    "format": "prettier --write \"**/*.{ts,tsx,md}\""
-  },
-  "devDependencies": {
-    "prettier": "^3.2.5",
-    "turbo": "^2.0.4",
-    "typescript": "^5.4.5"
-  },
-  "packageManager": "pnpm@8.15.6",
-  "engines": {
-    "node": ">=18"
-  }
+    "name": "mean-cache-problem",
+    "private": true,
+    "workspaces": [
+        "apps/*",
+        "packages/*"
+    ],
+    "scripts": {
+        "build": "turbo build",
+        "clean": "turbo run clean",
+        "dev": "turbo dev",
+        "format": "prettier --write \"**/*.{ts,tsx,md}\"",
+        "lint": "turbo lint",
+        "prepare": "husky",
+        "test": "turbo run test",
+        "test:e2e": "turbo run test:e2e",
+        "typecheck": "turbo run typecheck"
+    },
+    "lint-staged": {
+        "*.md,package.json": [
+            "prettier --write"
+        ]
+    },
+    "devDependencies": {
+        "@commitlint/cli": "^19.3.0",
+        "@commitlint/config-conventional": "^19.2.2",
+        "@commitlint/config-pnpm-scopes": "^19.1.0",
+        "@repo/eslint-config": "workspace:*",
+        "@repo/typescript-config": "workspace:*",
+        "@semantic-release/git": "^10.0.1",
+        "conventional-changelog-conventionalcommits": "^8.0.0",
+        "husky": "^9.0.11",
+        "lint-staged": "^15.2.5",
+        "pinst": "^3.0.0",
+        "prettier": "^3.2.5",
+        "semantic-release": "^24.0.0",
+        "turbo": "latest"
+    },
+    "packageManager": "pnpm@8.15.6",
+    "engines": {
+        "node": "^20.0.0"
+    },
+    "pnpm": {
+        "overrides": {
+            "ip@<1.1.9": ">=1.1.9",
+            "ip@=2.0.0": ">=2.0.1"
+        }
+    },
+    "version": "1.5.0"
 }
