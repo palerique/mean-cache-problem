@@ -78,6 +78,9 @@ importers:
       cookie-parser:
         specifier: ^1.4.6
         version: 1.4.6
+      double-ended-queue:
+        specifier: 2.1.0-0
+        version: 2.1.0-0
       reflect-metadata:
         specifier: ^0.2.2
         version: 0.2.2
@@ -103,6 +106,9 @@ importers:
       '@types/cookie-parser':
         specifier: ^1.4.7
         version: 1.4.7
+      '@types/double-ended-queue':
+        specifier: ^2.1.7
+        version: 2.1.7
       '@types/express':
         specifier: ^4.17.21
         version: 4.17.21
@@ -175,9 +181,6 @@ importers:
       axios:
         specifier: ^1.7.2
         version: 1.7.2
-      cookie-parser:
-        specifier: ^1.4.6
-        version: 1.4.6
       double-ended-queue:
         specifier: 2.1.0-0
         version: 2.1.0-0
@@ -212,9 +215,6 @@ importers:
       '@types/react-dom':
         specifier: ^18
         version: 18.3.0
-      '@types/uuid':
-        specifier: ^9.0.8
-        version: 9.0.8
       eslint:
         specifier: ^8
         version: 8.57.0

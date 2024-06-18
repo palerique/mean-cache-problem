@@ -1,9 +1,17 @@
 import { Body, Controller, Get, Logger, Post, Req, Res } from '@nestjs/common';
 import { MeanCacheProblemService } from './meanCacheProblem.service';
 import { ApiBody, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
-import { AddRecordDto } from './dto/addRecordDto';
+import { AddRecordDto } from './dto/addRecord.dto';
 import { FingerprintDto } from './dto/Fingerprint.dto';
 import { v4 as uuidv4 } from 'uuid';
+
+function getFingerprint(req: any) {
+    let fingerprint = req.cookies['fingerprint'];
+    if (!fingerprint) {
+        fingerprint = uuidv4();
+    }
+    return fingerprint;
+}
 
 @Controller('api')
 export class MeanCacheProblemController {
@@ -23,11 +31,11 @@ export class MeanCacheProblemController {
         @Req() req: any,
         @Body() { value }: AddRecordDto,
     ): Promise<void> {
-        const fingerprint = req.cookies['fingerprint'];
+        const fingerprint = getFingerprint(req);
         this.logger.log(
             `Adding record with value: ${value} to the fingerprint: ${fingerprint}`,
         );
-        this.meanCacheService.addRecord(fingerprint, value);
+        await this.meanCacheService.addRecord(fingerprint, Number(value));
     }
 
     @Get('mean')
@@ -38,7 +46,7 @@ export class MeanCacheProblemController {
     })
     @ApiTags('mean-cache-problem')
     async calculateMean(@Req() req: any): Promise<number> {
-        const fingerprint = req.cookies['fingerprint'];
+        const fingerprint = getFingerprint(req);
         this.logger.log(`Calculating mean for the fingerprint: ${fingerprint}`);
         return this.meanCacheService.calculateMean(fingerprint);
     }
@@ -64,7 +72,7 @@ export class MeanCacheProblemController {
         this.logger.log(
             `Initializing service with fingerprint: ${fingerprint}`,
         );
-        this.meanCacheService.initialize(fingerprint);
+        await this.meanCacheService.initialize(fingerprint, Number(body.ttl));
         res.cookie('fingerprint', fingerprint, {
             httpOnly: true,
             path: '/',
