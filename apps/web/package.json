@@ -9,6 +9,7 @@
         "start": "next start"
     },
     "dependencies": {
+        "@fingerprintjs/fingerprintjs": "^4.4.1",
         "@repo/ui": "workspace:*",
         "axios": "^1.7.2",
         "double-ended-queue": "2.1.0-0",
