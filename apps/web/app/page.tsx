@@ -8,6 +8,7 @@ import Switch from "../components/Switch";
 import "./page.css";
 import CacheRecord from "../components/CacheRecord";
 import Clock from "../components/Clock";
+import { Footer } from "../components/footer";
 
 interface Record {
     id: number;
@@ -26,12 +27,12 @@ interface CacheState {
 export default function Home() {
     const [init, setInit] = useState(false);
     const [value, setValue] = useState("");
-    const [randomValue, setRandomValue] = useState(false);
+    const [randomValue, setRandomValue] = useState(true);
     const [autoCalculateMeanInterval, setAutoCalculateMeanInterval] =
-        useState(10);
-    const [autoAddInterval, setAutoAddInterval] = useState(10);
-    const [autoAdd, setAutoAdd] = useState(false);
-    const [autoCalculateMean, setAutoCalculateMean] = useState(false);
+        useState(4);
+    const [autoAddInterval, setAutoAddInterval] = useState(2);
+    const [autoAdd, setAutoAdd] = useState(true);
+    const [autoCalculateMean, setAutoCalculateMean] = useState(true);
     const [mean, setMean] = useState(0);
     const [showScroll, setShowScroll] = useState(false);
     //TODO: update the running sum from the received cache state from the API:
@@ -131,13 +132,13 @@ export default function Home() {
     }
     return (
         <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-r from-green-400 via-blue-500 to-purple-600 text-white">
-            <h1 className="text-5xl font-bold mb-10">
+            <h1 className="text-5xl font-bold m-2.5">
                 Mean Cache Problem Solver
             </h1>
             <Clock />
             <div className="solution-container">
-                <div className="flex flex-row w-full justify-center other-container">
-                    <div className="bg-white bg-opacity-5 text-black text-opacity-100 p-8 rounded-lg shadow-md mr-10">
+                <div className="flex flex-row w-full justify-center flex-grow other-container">
+                    <div className="bg-white w-full h-full bg-opacity-5 text-black text-opacity-100 p-8 rounded-lg shadow-md m-2.5">
                         <div className="mb-4">
                             <label className="block text-sm font-medium mb-2">
                                 Value
@@ -241,8 +242,8 @@ export default function Home() {
                         </button>
                     </div>
                 </div>
-                <div className="mt-10 w-full flex flex-col items-center deque-container">
-                    <h2 className="text-3xl font-bold mb-6">Cache State</h2>
+                <div className="w-full flex flex-col items-center deque-container m-2.5">
+                    {/*<h2 className="text-3xl font-bold mb-6">Cache State</h2>*/}
                     <div className="bg-white text-black p-4 mb-4 rounded-lg shadow-md">
                         <div>Running Sum: {runningSum}</div>
                         <div>Cache Size: {cacheSize}</div>
@@ -264,42 +265,7 @@ export default function Home() {
                     </div>
                 </div>
             </div>
-            <footer className="fixed bottom-0 w-full text-center p-0 bg-green-300 text-blue-950">
-                <div className="flex justify-center space-x-4 mt-4">
-                    <a
-                        href="http://localhost:3002/api#/"
-                        target="_blank"
-                        rel="noreferrer"
-                        className="hover:text-amber-950"
-                    >
-                        API Documentation
-                    </a>
-                    <a
-                        href="https://github.com/palerique/meancacheproblem"
-                        target="_blank"
-                        rel="noreferrer"
-                        className="hover:text-amber-950"
-                    >
-                        Git Repository
-                    </a>
-                    <a
-                        href="http://localhost:8380/kiali/console/graph/namespaces/?traffic=grpc%2CgrpcRequest%2Chttp%2ChttpRequest%2Ctcp%2CtcpSent&graphType=versionedApp&namespaces=default%2Cistio-system&duration=1800&refresh=10000&layout=kiali-dagre&namespaceLayout=kiali-dagre&edges=trafficDistribution%2CtrafficRate%2Cthroughput%2CthroughputRequest%2CresponseTime%2Crt95&animation=true"
-                        target="_blank"
-                        rel="noreferrer"
-                        className="hover:text-amber-950"
-                    >
-                        Kiali
-                    </a>
-                    <a
-                        href="https://www.linkedin.com/in/palerique/"
-                        target="_blank"
-                        rel="noreferrer"
-                        className="hover:text-amber-950"
-                    >
-                        Find me on LinkedIn
-                    </a>
-                </div>
-            </footer>
+            <Footer />
             {showScroll && (
                 <button
                     className="fixed right-2 bottom-20 bg-blue-500 text-white p-2 rounded-full"

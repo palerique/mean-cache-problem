@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-set -e  # fail on any error
+set -e  # fail shouldAutoCalculateMean any error
 set -x  # display commands being run
 
 #Forward the ports for the services:
