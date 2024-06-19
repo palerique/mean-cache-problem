@@ -1,5 +1,8 @@
 import { Body, Controller, Get, Logger, Post, Req, Res } from '@nestjs/common';
-import { MeanCacheProblemService } from './meanCacheProblem.service';
+import {
+    CacheState,
+    MeanCacheProblemService,
+} from './meanCacheProblem.service';
 import { ApiBody, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { AddRecordDto } from './dto/addRecord.dto';
 import { FingerprintDto } from './dto/Fingerprint.dto';
@@ -22,13 +25,16 @@ export class MeanCacheProblemController {
     async addRecord(
         @Req() req: any,
         @Body() { value }: AddRecordDto,
-    ): Promise<void> {
+    ): Promise<CacheState> {
         this.logger.log(`Adding record with value: ${value}`);
         const fingerprint = this.getFingerprint(req);
         this.logger.log(
             `Adding record with value: ${value} to the fingerprint: ${fingerprint}`,
         );
-        await this.meanCacheService.addRecord(fingerprint, Number(value));
+        return await this.meanCacheService.addRecord(
+            fingerprint,
+            Number(value),
+        );
     }
 
     @Get('mean')
@@ -38,7 +44,7 @@ export class MeanCacheProblemController {
         description: 'Returns the mean of the records',
     })
     @ApiTags('mean-cache-problem')
-    async calculateMean(@Req() req: any): Promise<number> {
+    async calculateMean(@Req() req: any): Promise<CacheState> {
         const fingerprint = this.getFingerprint(req);
         this.logger.log(`Calculating mean for the fingerprint: ${fingerprint}`);
         return this.meanCacheService.calculateMean(fingerprint);
@@ -65,10 +71,14 @@ export class MeanCacheProblemController {
         this.logger.log(
             `Initializing service with fingerprint: ${fingerprint} and ttl: ${body.ttl}`,
         );
-        await this.meanCacheService.initialize(fingerprint, Number(body.ttl));
+        const cacheState = await this.meanCacheService.initialize(
+            fingerprint,
+            Number(body.ttl),
+        );
         res.cookie('fingerprint', fingerprint, {
             httpOnly: true,
             path: '/',
+            body: cacheState,
         });
     }
 

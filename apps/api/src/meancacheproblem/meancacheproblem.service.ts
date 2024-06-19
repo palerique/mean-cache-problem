@@ -2,14 +2,15 @@ import { Inject, Injectable, Logger } from '@nestjs/common';
 import { Cache, CACHE_MANAGER } from '@nestjs/cache-manager';
 import Deque = require('double-ended-queue');
 
-interface Record {
+export interface Record {
     expiringAt: number;
     value: number;
 }
 
-interface CacheState {
+export interface CacheState {
     fingerprint: string;
     ttl: number;
+    mean: number;
     runningSum: number;
     deque: Deque<Record>;
 }
@@ -45,11 +46,11 @@ export class MeanCacheProblemService {
                 cacheState,
             )}`,
         );
-        await this.expireRecords(cacheState);
+        return await this.expireRecords(cacheState);
     }
 
     async calculateMean(fingerprint: string) {
-        const cacheState = await this.getCacheState(fingerprint);
+        let cacheState = await this.getCacheState(fingerprint);
         this.logger.log(
             `Calculating mean for the fingerprint: ${fingerprint}, current cache state: ${JSON.stringify(
                 cacheState,
@@ -62,10 +63,12 @@ export class MeanCacheProblemService {
             throw new Error('Cache state not found');
         }
         if (!cacheState.deque.length) {
-            return 0;
+            cacheState.mean = 0;
+            return cacheState;
         }
-        await this.expireRecords(cacheState);
-        return cacheState.runningSum / cacheState.deque.length;
+        cacheState = await this.expireRecords(cacheState);
+        cacheState.mean = cacheState.runningSum / cacheState.deque.length;
+        return cacheState;
     }
 
     async initialize(fingerprint: string, ttl: number) {
@@ -85,11 +88,13 @@ export class MeanCacheProblemService {
             runningSum: 0,
             ttl,
             fingerprint,
+            mean: 0,
         };
         this.logger.log(
             `Setting the cache state: ${JSON.stringify(cacheState)}`,
         );
         await this.saveCacheState(cacheState);
+        return cacheState;
     }
 
     private async saveCacheState(cacheState: CacheState) {
@@ -129,6 +134,9 @@ export class MeanCacheProblemService {
             ttl: persistableCacheState.ttl,
             runningSum: persistableCacheState.runningSum,
             deque: new Deque<Record>(persistableCacheState.dequeAsArray),
+            mean:
+                persistableCacheState.runningSum /
+                persistableCacheState.dequeAsArray.length,
         };
         this.logger.log(
             `Cache state after deque conversion: ${JSON.stringify(cacheState)}`,
@@ -153,5 +161,6 @@ export class MeanCacheProblemService {
             cacheState.runningSum -= expiredRecord.value;
         }
         await this.saveCacheState(cacheState);
+        return cacheState;
     }
 }

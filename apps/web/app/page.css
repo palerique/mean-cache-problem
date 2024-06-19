@@ -4,3 +4,12 @@
     justify-content: flex-start;
     width: 100%;
 }
+
+.deque {
+    display: flex;
+    flex-direction: row;
+    flex-flow: row wrap;
+    justify-content: space-around;
+    align-items: center;
+    width: 100%;
+}

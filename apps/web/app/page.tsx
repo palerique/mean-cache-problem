@@ -6,10 +6,20 @@ import Deque from "double-ended-queue";
 import Switch from "../components/Switch";
 
 import "./page.css";
+import CacheRecord from "../components/CacheRecord";
+import Clock from "../components/Clock";
 
 interface Record {
     expiringAt: number;
     value: number;
+}
+
+interface CacheState {
+    fingerprint: string;
+    ttl: number;
+    mean: number;
+    runningSum: number;
+    deque: Record[];
 }
 
 export default function Home() {
@@ -25,7 +35,15 @@ export default function Home() {
     const [showScroll, setShowScroll] = useState(false);
     //TODO: update the running sum from the received cache state from the API:
     const [runningSum, setRunningSum] = useState(0);
+    const [cacheSize, setCacheSize] = useState(0);
     const [deque, setDeque] = useState(new Deque<Record>());
+
+    const updateData = (result: CacheState) => {
+        setMean(result.mean);
+        setDeque(new Deque(result.deque));
+        setRunningSum(result.runningSum);
+        setCacheSize(result.deque?.length || 0);
+    };
 
     const checkScrollTop = () => {
         if (!showScroll && window.pageYOffset > 400) {
@@ -45,8 +63,8 @@ export default function Home() {
         apiService
             .initialize(ttl)
             .then((res) => {
+                updateData(res);
                 setInit(true);
-                console.log(res); // UI now can be made functional
             })
             .catch((err) => {
                 console.error("Error during initialization:", err);
@@ -65,7 +83,7 @@ export default function Home() {
                 apiService
                     .calculateMean() // API call to calculateMean endpoint
                     .then((result) => {
-                        setMean(result.mean);
+                        updateData(result);
                     })
                     .catch((err) => {
                         console.error(err); // Handle error appropriately
@@ -86,13 +104,20 @@ export default function Home() {
         let valueToAdd;
         if (randomValue) valueToAdd = Math.floor(Math.random() * 100) + 1;
         else valueToAdd = Number(value);
-        apiService.addRecord(valueToAdd).catch((err) => {
-            console.error(err); // Handle error appropriately
-        });
+        apiService
+            .addRecord(valueToAdd)
+            .then((result) => {
+                updateData(result);
+            })
+            .catch((err) => {
+                console.error(err);
+            });
     };
 
     const calculateMean = () => {
-        //TODO: call the calculate mean API
+        apiService.calculateMean().then((result) => {
+            updateData(result);
+        });
     };
 
     const formatTimestamp = (timestamp: number) => {
@@ -108,6 +133,7 @@ export default function Home() {
             <h1 className="text-5xl font-bold mb-10">
                 Mean Cache Problem Solver
             </h1>
+            <Clock />
             <div className="solution-container">
                 <div className="flex flex-row w-full justify-center">
                     <div className="bg-white bg-opacity-5 text-black text-opacity-100 p-8 rounded-lg shadow-md mr-10">
@@ -218,28 +244,25 @@ export default function Home() {
                     <h2 className="text-3xl font-bold mb-6">Cache State</h2>
                     <div className="bg-white text-black p-4 mb-4 rounded-lg shadow-md">
                         <div>Running Sum: {runningSum}</div>
+                        <div>Cache Size: {cacheSize}</div>
                         <div>Mean: {mean}</div>
                         <div>
                             <h3 className="text-2xl font-bold mb-4">Deque</h3>
-                            <div className="flex">
+                            <div className="flex deque">
                                 {deque.toArray().map((record, index) => (
-                                    <div
+                                    <CacheRecord
                                         key={index}
-                                        className={`bg-blue-500 text-white p-4 m-2 rounded-lg shadow-md transition-transform duration-1000 ${index === 0 ? "scale-110" : "scale-100"}`}
-                                    >
-                                        <div>Value: {record.value}</div>
-                                        <div>
-                                            Expiration:{" "}
-                                            {formatTimestamp(record.expiringAt)}
-                                        </div>
-                                    </div>
+                                        value={record.value}
+                                        expiringAt={record.expiringAt}
+                                        isFirst={index === 0}
+                                    />
                                 ))}
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
-            <footer className="fixed inset-x-0 bottom-0 w-full text-center border-t border-grey p-4 bg-amber-500 text-blue-950">
+            <footer className="fixed bottom-0 w-full text-center p-0 bg-green-300 text-blue-950">
                 <div className="flex justify-center space-x-4 mt-4">
                     <a
                         href="http://localhost:3002/api#/"
