@@ -2,7 +2,6 @@
 import React, { useEffect, useState } from "react";
 import apiService from "../services/meanCacheService";
 import Deque from "double-ended-queue";
-import classNames from "classnames";
 
 interface Record {
     expiringAt: number;
@@ -120,37 +119,14 @@ export default function Home() {
                         />
                     </div>
                     <div className="mb-4 flex items-center">
-                        <span className="text-lg font-bold mr-3">
+                        <input
+                            type="checkbox"
+                            checked={randomValue}
+                            onChange={() => setRandomValue(!randomValue)}
+                            className="mr-2"
+                        />
+                        <label className="text-sm font-medium">
                             Use Random Value
-                        </span>
-                        <label className="flex items-center relative cursor-pointer select-none">
-                            <input
-                                type="checkbox"
-                                checked={randomValue}
-                                onChange={() => setRandomValue(!randomValue)}
-                                className="appearance-none cursor-pointer w-14 h-7 rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-black bg-red-500 transition-colors duration-200"
-                            />
-                            <span
-                                className={classNames(
-                                    "w-7 h-7 absolute rounded-full transform transition-transform bg-gray-200",
-                                    {
-                                        "right-1": !randomValue,
-                                        "right-7": randomValue,
-                                    },
-                                )}
-                            />
-                            <span
-                                className="absolute text-xs font-medium uppercase right-8 transition-opacity duration-200"
-                                style={{ opacity: randomValue ? 1.0 : 0.0 }}
-                            >
-                                ON
-                            </span>
-                            <span
-                                className="absolute text-xs font-medium uppercase right-1 transition-opacity duration-200"
-                                style={{ opacity: randomValue ? 0.0 : 1.0 }}
-                            >
-                                OFF
-                            </span>
                         </label>
                     </div>
                     <div className="mb-4">
@@ -167,27 +143,16 @@ export default function Home() {
                             }
                             className="w-full px-4 py-2 rounded-lg border focus:ring focus:border-blue-300"
                         />
-                        <label className="flex items-center relative w-max cursor-pointer select-none">
-                            <span className="block text-sm font-medium mb-2">
-                                Auto Calculate Mean
-                            </span>
-                            <input
-                                type="checkbox"
-                                checked={autoCalculateMean}
-                                onChange={() =>
-                                    setAutoCalculateMean(!autoCalculateMean)
-                                }
-                                className="appearance-none transition-colors cursor-pointer w-14 h-7 rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-black focus:ring-blue-500 bg-red-500"
-                            />
-                            <span
-                                className={`absolute font-medium text-xs uppercase ${autoCalculateMean ? "right-8" : "right-1"} text-white`}
-                            >
-                                {" "}
-                                {autoCalculateMean ? "ON" : "OFF"}{" "}
-                            </span>
-                            <span
-                                className={`w-7 h-7 ${autoCalculateMean ? "right-7" : "right-0"} absolute rounded-full transform transition-transform bg-gray-200`}
-                            />
+                        <input
+                            type="checkbox"
+                            checked={autoCalculateMean}
+                            onChange={() =>
+                                setAutoCalculateMean(!autoCalculateMean)
+                            }
+                            className="mr-2"
+                        />
+                        <label className="text-sm font-medium">
+                            Auto Calculate Mean
                         </label>
                     </div>
                     <div className="mb-4">
@@ -202,25 +167,14 @@ export default function Home() {
                             }
                             className="w-full px-4 py-2 rounded-lg border focus:ring focus:border-blue-300"
                         />
-                        <label className="flex items-center relative w-max cursor-pointer select-none">
-                            <span className="block text-sm font-medium mb-2">
-                                Auto Add Record
-                            </span>
-                            <input
-                                type="checkbox"
-                                checked={autoAdd}
-                                onChange={() => setAutoAdd(!autoAdd)}
-                                className="appearance-none transition-colors cursor-pointer w-14 h-7 rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-black focus:ring-blue-500 bg-red-500"
-                            />
-                            <span
-                                className={`absolute font-medium text-xs uppercase ${autoAdd ? "right-8" : "right-1"} text-white`}
-                            >
-                                {" "}
-                                {autoAdd ? "ON" : "OFF"}{" "}
-                            </span>
-                            <span
-                                className={`w-7 h-7 ${autoAdd ? "right-7" : "right-0"} absolute rounded-full transform transition-transform bg-gray-200`}
-                            />
+                        <input
+                            type="checkbox"
+                            checked={autoAdd}
+                            onChange={() => setAutoAdd(!autoAdd)}
+                            className="mr-2"
+                        />
+                        <label className="text-sm font-medium">
+                            Auto Add Record
                         </label>
                     </div>
                     <button
