@@ -1,7 +1,11 @@
 "use client";
+
 import React, { useEffect, useState } from "react";
 import apiService from "../services/meanCacheService";
 import Deque from "double-ended-queue";
+import Switch from "../components/Switch";
+
+import "./page.css";
 
 interface Record {
     expiringAt: number;
@@ -104,113 +108,133 @@ export default function Home() {
             <h1 className="text-5xl font-bold mb-10">
                 Mean Cache Problem Solver
             </h1>
-            <div className="flex flex-row w-full justify-center">
-                <div className="bg-white bg-opacity-5 text-black text-opacity-100 p-8 rounded-lg shadow-md mr-10">
-                    <div className="mb-4">
-                        <label className="block text-sm font-medium mb-2">
-                            Value
-                        </label>
-                        <input
-                            type="number"
-                            value={value}
-                            onChange={(e) => setValue(e.target.value)}
-                            disabled={randomValue}
-                            className="w-full px-4 py-2 rounded-lg border focus:ring focus:border-blue-300"
-                        />
-                    </div>
-                    <div className="mb-4 flex items-center">
-                        <input
-                            type="checkbox"
-                            checked={randomValue}
-                            onChange={() => setRandomValue(!randomValue)}
-                            className="mr-2"
-                        />
-                        <label className="text-sm font-medium">
-                            Use Random Value
-                        </label>
-                    </div>
-                    <div className="mb-4">
-                        <label className="block text-sm font-medium mb-2">
-                            Mean Calculation Interval (seconds)
-                        </label>
-                        <input
-                            type="number"
-                            value={autoCalculateMeanInterval}
-                            onChange={(e) =>
-                                setAutoCalculateMeanInterval(
-                                    parseInt(e.target.value),
-                                )
-                            }
-                            className="w-full px-4 py-2 rounded-lg border focus:ring focus:border-blue-300"
-                        />
-                        <input
-                            type="checkbox"
-                            checked={autoCalculateMean}
-                            onChange={() =>
-                                setAutoCalculateMean(!autoCalculateMean)
-                            }
-                            className="mr-2"
-                        />
-                        <label className="text-sm font-medium">
-                            Auto Calculate Mean
-                        </label>
-                    </div>
-                    <div className="mb-4">
-                        <label className="block text-sm font-medium mb-2">
-                            Auto Add Interval (seconds)
-                        </label>
-                        <input
-                            type="number"
-                            value={autoAddInterval}
-                            onChange={(e) =>
-                                setAutoAddInterval(parseInt(e.target.value))
-                            }
-                            className="w-full px-4 py-2 rounded-lg border focus:ring focus:border-blue-300"
-                        />
-                        <input
-                            type="checkbox"
-                            checked={autoAdd}
-                            onChange={() => setAutoAdd(!autoAdd)}
-                            className="mr-2"
-                        />
-                        <label className="text-sm font-medium">
-                            Auto Add Record
-                        </label>
-                    </div>
-                    <button
-                        onClick={addRecord}
-                        className="w-full bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg"
-                    >
-                        Add Record Manually
-                    </button>
-                    <button
-                        onClick={calculateMean}
-                        className="w-full bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg mt-4"
-                    >
-                        Calculate Mean
-                    </button>
-                </div>
-            </div>
-            <div className="mt-10 w-full flex flex-col items-center">
-                <h2 className="text-3xl font-bold mb-6">Cache State</h2>
-                <div className="bg-white text-black p-4 mb-4 rounded-lg shadow-md">
-                    <div>Running Sum: {runningSum}</div>
-                    <div>Mean: {mean}</div>
-                    <div>
-                        <h3 className="text-2xl font-bold mb-4">Deque</h3>
-                        <div className="flex">
-                            {deque.toArray().map((record, index) => (
-                                <div
-                                    key={index}
-                                    className={`bg-blue-500 text-white p-4 m-2 rounded-lg shadow-md transition-transform duration-1000 ${index === 0 ? "scale-110" : "scale-100"}`}
-                                >
-                                    <div>Value: {record.value}</div>
-                                    <div>
-                                        Expiration:{" "}
-                                        {formatTimestamp(record.expiringAt)}
-                                    </div>
+            <div className="solution-container">
+                <div className="flex flex-row w-full justify-center">
+                    <div className="bg-white bg-opacity-5 text-black text-opacity-100 p-8 rounded-lg shadow-md mr-10">
+                        <div className="mb-4">
+                            <label className="block text-sm font-medium mb-2">
+                                Value
+                            </label>
+                            <input
+                                type="number"
+                                value={value}
+                                onChange={(e) => setValue(e.target.value)}
+                                disabled={randomValue}
+                                className="w-full px-4 py-2 rounded-lg border focus:ring focus:border-blue-300"
+                            />
+                        </div>
+                        <div className="mb-4 flex items-center justify-between">
+                            <label className="text-sm font-medium">
+                                Use Random Value
+                            </label>
+                            <div className="flex items-center">
+                                <Switch
+                                    isOn={randomValue}
+                                    handleToggle={() =>
+                                        setRandomValue(!randomValue)
+                                    }
+                                    onColor={"#4CAF50"}
+                                    offColor={"#FF4500"}
+                                />
+                            </div>
+                        </div>
+                        <div className="mb-4">
+                            <label className="block text-sm font-medium mb-2">
+                                Mean Calculation Interval (seconds)
+                            </label>
+                            <input
+                                type="number"
+                                value={autoCalculateMeanInterval}
+                                onChange={(e) =>
+                                    setAutoCalculateMeanInterval(
+                                        parseInt(e.target.value),
+                                    )
+                                }
+                                className="w-full px-4 py-2 rounded-lg border focus:ring focus:border-blue-300"
+                            />
+
+                            <div className="mb-4 flex items-center justify-between">
+                                <label className="text-sm font-medium">
+                                    Auto Calculate Mean
+                                </label>
+                                <div className="flex items-center">
+                                    <Switch
+                                        isOn={autoCalculateMean}
+                                        handleToggle={() =>
+                                            setAutoCalculateMean(
+                                                !autoCalculateMean,
+                                            )
+                                        }
+                                        onColor={"#4CAF50"}
+                                        offColor={"#FF4500"}
+                                    />
                                 </div>
-                            ))}
+                            </div>
+                        </div>
+                        <div className="mb-4">
+                            <label className="block text-sm font-medium mb-2">
+                                Auto Add Interval (seconds)
+                            </label>
+                            <input
+                                type="number"
+                                value={autoAddInterval}
+                                onChange={(e) =>
+                                    setAutoAddInterval(parseInt(e.target.value))
+                                }
+                                className="w-full px-4 py-2 rounded-lg border focus:ring focus:border-blue-300"
+                            />
+
+                            <div className="mb-4 flex items-center justify-between">
+                                <label className="text-sm font-medium">
+                                    Auto Add Record
+                                </label>
+                                <div className="flex items-center">
+                                    <Switch
+                                        isOn={autoAdd}
+                                        handleToggle={() =>
+                                            setAutoAdd(!autoAdd)
+                                        }
+                                        onColor={"#4CAF50"}
+                                        offColor={"#FF4500"}
+                                    />
+                                </div>
+                            </div>
+                        </div>
+                        <button
+                            onClick={addRecord}
+                            className="w-full bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg"
+                        >
+                            Add Record Manually
+                        </button>
+                        <button
+                            onClick={calculateMean}
+                            className="w-full bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg mt-4"
+                        >
+                            Calculate Mean
+                        </button>
+                    </div>
+                </div>
+                <div className="mt-10 w-full flex flex-col items-center">
+                    <h2 className="text-3xl font-bold mb-6">Cache State</h2>
+                    <div className="bg-white text-black p-4 mb-4 rounded-lg shadow-md">
+                        <div>Running Sum: {runningSum}</div>
+                        <div>Mean: {mean}</div>
+                        <div>
+                            <h3 className="text-2xl font-bold mb-4">Deque</h3>
+                            <div className="flex">
+                                {deque.toArray().map((record, index) => (
+                                    <div
+                                        key={index}
+                                        className={`bg-blue-500 text-white p-4 m-2 rounded-lg shadow-md transition-transform duration-1000 ${index === 0 ? "scale-110" : "scale-100"}`}
+                                    >
+                                        <div>Value: {record.value}</div>
+                                        <div>
+                                            Expiration:{" "}
+                                            {formatTimestamp(record.expiringAt)}
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
                         </div>
                     </div>
                 </div>
