@@ -26,8 +26,9 @@ interface CacheState {
 
 export default function Home() {
     const [init, setInit] = useState(false);
-    const [value, setValue] = useState("");
-    const [randomValue, setRandomValue] = useState(true);
+    const [defaultTtl, setDefaultTtl] = useState(30);
+    const [value, setValue] = useState("1");
+    const [randomValue, setRandomValue] = useState(false);
     const [autoCalculateMeanInterval, setAutoCalculateMeanInterval] =
         useState(4);
     const [autoAddInterval, setAutoAddInterval] = useState(2);
@@ -35,7 +36,6 @@ export default function Home() {
     const [autoCalculateMean, setAutoCalculateMean] = useState(true);
     const [mean, setMean] = useState(0);
     const [showScroll, setShowScroll] = useState(false);
-    //TODO: update the running sum from the received cache state from the API:
     const [runningSum, setRunningSum] = useState(0);
     const [cacheSize, setCacheSize] = useState(0);
     const [deque, setDeque] = useState(new Deque<Record>());
@@ -139,6 +139,20 @@ export default function Home() {
             <div className="solution-container">
                 <div className="flex flex-row w-full justify-center flex-grow other-container">
                     <div className="bg-white w-full h-full bg-opacity-5 text-black text-opacity-100 p-8 rounded-lg shadow-md m-2.5">
+                        <div className="mb-4">
+                            <label className="block text-sm font-medium mb-2">
+                                Default TTL (seconds)
+                            </label>
+                            <input
+                                type="number"
+                                value={defaultTtl}
+                                onChange={(e) =>
+                                    setDefaultTtl(Number(e.target.value))
+                                }
+                                disabled={true}
+                                className="w-full px-4 py-2 rounded-lg border focus:ring focus:border-blue-300"
+                            />
+                        </div>
                         <div className="mb-4">
                             <label className="block text-sm font-medium mb-2">
                                 Value
