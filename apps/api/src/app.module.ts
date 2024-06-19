@@ -2,6 +2,7 @@ import { Logger, Module } from '@nestjs/common';
 import { MeanCacheProblemModule } from './meanCacheProblem/meanCacheProblem.module';
 import { CacheModule } from '@nestjs/cache-manager';
 import * as redisStore from 'cache-manager-redis-store';
+import { KafkaModule } from './Kafka.module';
 
 @Module({
     imports: [
@@ -12,14 +13,16 @@ import * as redisStore from 'cache-manager-redis-store';
             port: process.env.REDIS_PORT,
             password: process.env.REDIS_PASSWORD,
         }),
+        KafkaModule,
         MeanCacheProblemModule,
     ],
 })
 export class AppModule {
+    logger = new Logger('AppModule');
+
     constructor() {
-        const logger = new Logger('AppModule');
-        logger.log(`Redis host: ${process.env.REDIS_HOST}`);
-        logger.log(`Redis port: ${process.env.REDIS_PORT}`);
-        logger.log(`Redis password: ${process.env.REDIS_PASSWORD}`);
+        this.logger.log(`Redis host: ${process.env.REDIS_HOST}`);
+        this.logger.log(`Redis port: ${process.env.REDIS_PORT}`);
+        this.logger.log(`Redis password: ${process.env.REDIS_PASSWORD}`);
     }
 }

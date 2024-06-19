@@ -1,5 +1,7 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { Cache, CACHE_MANAGER } from '@nestjs/cache-manager';
+import { Producer } from 'kafkajs';
+import { KAFKA_CLIENT } from '../Kafka.module';
 import Deque = require('double-ended-queue');
 
 export interface Record {
@@ -28,7 +30,10 @@ export class MeanCacheProblemService {
     private readonly logger = new Logger(MeanCacheProblemService.name);
     private idSequence = 1;
 
-    constructor(@Inject(CACHE_MANAGER) private cacheManager: Cache) {}
+    constructor(
+        @Inject(CACHE_MANAGER) private cacheManager: Cache,
+        @Inject(KAFKA_CLIENT) private kafka: Producer,
+    ) {}
 
     async addRecord(fingerprint: string, value: number) {
         const cacheState = await this.getCacheState(fingerprint);
@@ -48,6 +53,9 @@ export class MeanCacheProblemService {
             `Adding record with value: ${value} to the fingerprint: ${fingerprint}, current cache state: ${JSON.stringify(
                 cacheState,
             )}`,
+        );
+        await this.sendKafkaMessage(
+            `A new record with id: ${this.idSequence} and value: ${value} was added`,
         );
         return await this.expireRecords(cacheState);
     }
@@ -71,6 +79,9 @@ export class MeanCacheProblemService {
         }
         cacheState = await this.expireRecords(cacheState);
         cacheState.mean = cacheState.runningSum / cacheState.deque.length;
+        await this.sendKafkaMessage(
+            `The mean for the fingerprint: ${fingerprint} is ${cacheState.mean}`,
+        );
         return cacheState;
     }
 
@@ -97,7 +108,35 @@ export class MeanCacheProblemService {
             `Setting the cache state: ${JSON.stringify(cacheState)}`,
         );
         await this.saveCacheState(cacheState);
+        await this.sendKafkaMessage(
+            `The service was initialized with fingerprint: ${fingerprint} and ttl: ${ttl}`,
+        );
         return cacheState;
+    }
+
+    private async sendKafkaMessage(message: string) {
+        try {
+            await this.kafka.connect();
+            await this.kafka.send({
+                topic: 'my-topic',
+                messages: [
+                    {
+                        value: message,
+                    },
+                ],
+            });
+        } catch (error) {
+            // Handle the error appropriately.
+            // Possibly retry sending message, alert the system, etc.
+            this.logger.error('Error sending Kafka message:', error);
+        } finally {
+            // // Use finally clause so disconnect gets called even if send failed.
+            // try {
+            //     await this.kafka.disconnect();
+            // } catch (error) {
+            //     this.logger.error('Error disconnecting from Kafka:', error);
+            // }
+        }
     }
 
     private async saveCacheState(cacheState: CacheState) {
