@@ -1,7 +1,6 @@
 .solution-container {
     display: flex;
     flex-direction: row;
-    justify-content: flex-start;
     width: 100%;
 }
 
@@ -12,4 +11,12 @@
     justify-content: space-around;
     align-items: center;
     width: 100%;
+}
+
+.deque-container {
+    flex: 9;
+}
+
+.other-container {
+    flex: 3;
 }

@@ -4,12 +4,14 @@ interface CacheRecordProps {
     value: number;
     expiringAt: number;
     isFirst: boolean;
+    id?: number;
 }
 
 const CacheRecord: React.FC<CacheRecordProps> = ({
     value,
     expiringAt,
     isFirst,
+    id,
 }) => {
     const [timeTillExpiry, setTimeTillExpiry] = useState(0);
 
@@ -27,6 +29,7 @@ const CacheRecord: React.FC<CacheRecordProps> = ({
         <div
             className={`bg-blue-500 text-white p-4 m-2 rounded-lg shadow-md transition-transform duration-1000 ${isFirst ? "scale-110" : "scale-100"}`}
         >
+            <div>id: {id}</div>
             <div>Value: {value}</div>
             <div>Expiration: {new Date(expiringAt).toLocaleString()}</div>
             <div>Time till expiry: {Math.round(timeTillExpiry)} seconds</div>

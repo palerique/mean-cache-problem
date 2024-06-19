@@ -3,6 +3,7 @@ import { Cache, CACHE_MANAGER } from '@nestjs/cache-manager';
 import Deque = require('double-ended-queue');
 
 export interface Record {
+    id: number;
     expiringAt: number;
     value: number;
 }
@@ -25,6 +26,7 @@ interface PersistableCacheState {
 @Injectable()
 export class MeanCacheProblemService {
     private readonly logger = new Logger(MeanCacheProblemService.name);
+    private idSequence = 1;
 
     constructor(@Inject(CACHE_MANAGER) private cacheManager: Cache) {}
 
@@ -37,6 +39,7 @@ export class MeanCacheProblemService {
             throw new Error('Cache state not found');
         }
         cacheState.deque.push({
+            id: this.idSequence++,
             expiringAt: new Date().getTime() + cacheState.ttl,
             value: value,
         });
@@ -151,11 +154,11 @@ export class MeanCacheProblemService {
             )}`,
         );
         const currentTime = new Date().getTime();
+        this.logger.log(`Current time: ${currentTime}`);
         while (
             cacheState &&
             cacheState.deque.length &&
-            currentTime - cacheState.deque.peekFront()?.expiringAt >
-                cacheState.ttl
+            currentTime - cacheState.deque.peekFront()?.expiringAt >= 0
         ) {
             const expiredRecord = cacheState.deque.shift();
             cacheState.runningSum -= expiredRecord.value;

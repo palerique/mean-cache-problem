@@ -10,6 +10,7 @@ import CacheRecord from "../components/CacheRecord";
 import Clock from "../components/Clock";
 
 interface Record {
+    id: number;
     expiringAt: number;
     value: number;
 }
@@ -135,7 +136,7 @@ export default function Home() {
             </h1>
             <Clock />
             <div className="solution-container">
-                <div className="flex flex-row w-full justify-center">
+                <div className="flex flex-row w-full justify-center other-container">
                     <div className="bg-white bg-opacity-5 text-black text-opacity-100 p-8 rounded-lg shadow-md mr-10">
                         <div className="mb-4">
                             <label className="block text-sm font-medium mb-2">
@@ -240,7 +241,7 @@ export default function Home() {
                         </button>
                     </div>
                 </div>
-                <div className="mt-10 w-full flex flex-col items-center">
+                <div className="mt-10 w-full flex flex-col items-center deque-container">
                     <h2 className="text-3xl font-bold mb-6">Cache State</h2>
                     <div className="bg-white text-black p-4 mb-4 rounded-lg shadow-md">
                         <div>Running Sum: {runningSum}</div>
@@ -252,6 +253,7 @@ export default function Home() {
                                 {deque.toArray().map((record, index) => (
                                     <CacheRecord
                                         key={index}
+                                        id={record.id}
                                         value={record.value}
                                         expiringAt={record.expiringAt}
                                         isFirst={index === 0}
