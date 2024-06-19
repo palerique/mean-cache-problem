@@ -14,6 +14,13 @@ interface CacheState {
     deque: Deque<Record>;
 }
 
+interface PersistableCacheState {
+    fingerprint: string;
+    ttl: number;
+    runningSum: number;
+    dequeAsArray: Record[];
+}
+
 @Injectable()
 export class MeanCacheProblemService {
     private readonly logger = new Logger(MeanCacheProblemService.name);
@@ -39,7 +46,6 @@ export class MeanCacheProblemService {
             )}`,
         );
         await this.expireRecords(cacheState);
-        await this.cacheManager.set(fingerprint, JSON.stringify(cacheState));
     }
 
     async calculateMean(fingerprint: string) {
@@ -83,7 +89,25 @@ export class MeanCacheProblemService {
         this.logger.log(
             `Setting the cache state: ${JSON.stringify(cacheState)}`,
         );
-        await this.cacheManager.set(fingerprint, JSON.stringify(cacheState));
+        await this.saveCacheState(cacheState);
+    }
+
+    private async saveCacheState(cacheState: CacheState) {
+        this.logger.log(
+            `Saving cache state for the fingerprint: ${
+                cacheState.fingerprint
+            }, cache state: ${JSON.stringify(cacheState)}`,
+        );
+        const cacheStateToPersist: PersistableCacheState = {
+            fingerprint: cacheState.fingerprint,
+            ttl: cacheState.ttl,
+            runningSum: cacheState.runningSum,
+            dequeAsArray: cacheState.deque.toArray(),
+        };
+        await this.cacheManager.set(
+            cacheState.fingerprint,
+            cacheStateToPersist,
+        );
     }
 
     private async getCacheState(
@@ -92,22 +116,24 @@ export class MeanCacheProblemService {
         this.logger.log(
             `Getting cache state for the fingerprint: ${fingerprint}`,
         );
-        const cacheStateAsString: string = await this.cacheManager.get(
-            fingerprint,
+        const persistableCacheState: PersistableCacheState =
+            await this.cacheManager.get(fingerprint);
+        this.logger.log(
+            `Cache state: ${JSON.stringify(persistableCacheState)}`,
         );
-        this.logger.log(`Cache state: ${JSON.stringify(cacheStateAsString)}`);
-        if (!cacheStateAsString) {
+        if (!persistableCacheState) {
             return null;
         }
-        const cacheState: any = JSON.parse(cacheStateAsString);
-        this.logger.log(
-            `Cache state after parsing: ${JSON.stringify(cacheState)}`,
-        );
-        cacheState.deque = new Deque<Record>(cacheState.deque);
+        const cacheState: CacheState = {
+            fingerprint: persistableCacheState.fingerprint,
+            ttl: persistableCacheState.ttl,
+            runningSum: persistableCacheState.runningSum,
+            deque: new Deque<Record>(persistableCacheState.dequeAsArray),
+        };
         this.logger.log(
             `Cache state after deque conversion: ${JSON.stringify(cacheState)}`,
         );
-        return cacheState as CacheState;
+        return cacheState;
     }
 
     private async expireRecords(cacheState: CacheState) {
@@ -126,9 +152,6 @@ export class MeanCacheProblemService {
             const expiredRecord = cacheState.deque.shift();
             cacheState.runningSum -= expiredRecord.value;
         }
-        await this.cacheManager.set(
-            cacheState.fingerprint,
-            JSON.stringify(cacheState),
-        );
+        await this.saveCacheState(cacheState);
     }
 }

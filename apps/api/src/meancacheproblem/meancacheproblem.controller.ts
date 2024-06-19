@@ -5,14 +5,6 @@ import { AddRecordDto } from './dto/addRecord.dto';
 import { FingerprintDto } from './dto/Fingerprint.dto';
 import { v4 as uuidv4 } from 'uuid';
 
-function getFingerprint(req: any) {
-    let fingerprint = req.cookies['fingerprint'];
-    if (!fingerprint) {
-        fingerprint = uuidv4();
-    }
-    return fingerprint;
-}
-
 @Controller('api')
 export class MeanCacheProblemController {
     private readonly logger = new Logger(MeanCacheProblemController.name);
@@ -31,7 +23,8 @@ export class MeanCacheProblemController {
         @Req() req: any,
         @Body() { value }: AddRecordDto,
     ): Promise<void> {
-        const fingerprint = getFingerprint(req);
+        this.logger.log(`Adding record with value: ${value}`);
+        const fingerprint = this.getFingerprint(req);
         this.logger.log(
             `Adding record with value: ${value} to the fingerprint: ${fingerprint}`,
         );
@@ -46,7 +39,7 @@ export class MeanCacheProblemController {
     })
     @ApiTags('mean-cache-problem')
     async calculateMean(@Req() req: any): Promise<number> {
-        const fingerprint = getFingerprint(req);
+        const fingerprint = this.getFingerprint(req);
         this.logger.log(`Calculating mean for the fingerprint: ${fingerprint}`);
         return this.meanCacheService.calculateMean(fingerprint);
     }
@@ -77,5 +70,15 @@ export class MeanCacheProblemController {
             httpOnly: true,
             path: '/',
         });
+    }
+
+    getFingerprint(req: any) {
+        this.logger.log(`Getting fingerprint from the request`);
+        const fingerprint = req.cookies['fingerprint'];
+        this.logger.log(`Fingerprint from the request cookies: ${fingerprint}`);
+        if (!fingerprint) {
+            throw new Error('Fingerprint not found');
+        }
+        return fingerprint;
     }
 }

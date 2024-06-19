@@ -20,7 +20,7 @@ export default function Home() {
 
     useEffect(() => {
         //TODO: get the TTL from the page and pass it to the initialize function
-        let ttl = 30;
+        let ttl = 30 * 1000;
         apiService
             .initialize(ttl)
             .then((res) => {
