@@ -70,7 +70,7 @@ export class MeanCacheProblemController {
             fingerprint = uuidv4();
         }
         this.logger.log(
-            `Initializing service with fingerprint: ${fingerprint}`,
+            `Initializing service with fingerprint: ${fingerprint} and ttl: ${body.ttl}`,
         );
         await this.meanCacheService.initialize(fingerprint, Number(body.ttl));
         res.cookie('fingerprint', fingerprint, {

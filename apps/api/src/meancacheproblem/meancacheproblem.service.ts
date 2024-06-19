@@ -1,6 +1,6 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { Cache, CACHE_MANAGER } from '@nestjs/cache-manager';
-import Deque from 'double-ended-queue';
+import Deque = require('double-ended-queue');
 
 interface Record {
     expiringAt: number;
@@ -21,8 +21,11 @@ export class MeanCacheProblemService {
     constructor(@Inject(CACHE_MANAGER) private cacheManager: Cache) {}
 
     async addRecord(fingerprint: string, value: number) {
-        const cacheState: CacheState = await this.cacheManager.get(fingerprint);
+        const cacheState = await this.getCacheState(fingerprint);
         if (!cacheState) {
+            this.logger.error(
+                `Cache state isn't found for fingerprint: ${fingerprint}`,
+            );
             throw new Error('Cache state not found');
         }
         cacheState.deque.push({
@@ -30,22 +33,32 @@ export class MeanCacheProblemService {
             value: value,
         });
         cacheState.runningSum += value;
-        await this.cacheManager.set(fingerprint, cacheState);
         this.logger.log(
-            `Adding record with value: ${value} to the fingerprint: ${fingerprint}, current cache state: ${cacheState}`,
+            `Adding record with value: ${value} to the fingerprint: ${fingerprint}, current cache state: ${JSON.stringify(
+                cacheState,
+            )}`,
         );
         await this.expireRecords(cacheState);
+        await this.cacheManager.set(fingerprint, JSON.stringify(cacheState));
     }
 
     async calculateMean(fingerprint: string) {
-        const cacheState: CacheState = await this.cacheManager.get(fingerprint);
-        await this.expireRecords(cacheState);
+        const cacheState = await this.getCacheState(fingerprint);
         this.logger.log(
-            `Calculating mean for the fingerprint: ${fingerprint}, current cache state: ${cacheState}`,
+            `Calculating mean for the fingerprint: ${fingerprint}, current cache state: ${JSON.stringify(
+                cacheState,
+            )}`,
         );
-        if (!cacheState || !cacheState.deque.length) {
+        if (!cacheState) {
+            this.logger.error(
+                `Cache state isn't found for fingerprint: ${fingerprint}`,
+            );
+            throw new Error('Cache state not found');
+        }
+        if (!cacheState.deque.length) {
             return 0;
         }
+        await this.expireRecords(cacheState);
         return cacheState.runningSum / cacheState.deque.length;
     }
 
@@ -53,14 +66,56 @@ export class MeanCacheProblemService {
         this.logger.log(
             `Initializing the service with fingerprint: ${fingerprint} and ttl: ${ttl}`,
         );
-        await this.cacheManager.set(fingerprint, {
-            data: [],
+        if (isNaN(ttl) || ttl < 0) {
+            this.logger.error(`Invalid TTL: ${ttl}`);
+            throw new Error(`Invalid TTL: ${ttl}`);
+        }
+        if (!fingerprint || fingerprint.length === 0) {
+            this.logger.error(`Invalid fingerprint: ${fingerprint}`);
+            throw new Error(`Invalid fingerprint: ${fingerprint}`);
+        }
+        const cacheState: CacheState = {
+            deque: new Deque<Record>([]),
             runningSum: 0,
-            ttl: ttl,
-        });
+            ttl,
+            fingerprint,
+        };
+        this.logger.log(
+            `Setting the cache state: ${JSON.stringify(cacheState)}`,
+        );
+        await this.cacheManager.set(fingerprint, JSON.stringify(cacheState));
+    }
+
+    private async getCacheState(
+        fingerprint: string,
+    ): Promise<CacheState | null> {
+        this.logger.log(
+            `Getting cache state for the fingerprint: ${fingerprint}`,
+        );
+        const cacheStateAsString: string = await this.cacheManager.get(
+            fingerprint,
+        );
+        this.logger.log(`Cache state: ${JSON.stringify(cacheStateAsString)}`);
+        if (!cacheStateAsString) {
+            return null;
+        }
+        const cacheState: any = JSON.parse(cacheStateAsString);
+        this.logger.log(
+            `Cache state after parsing: ${JSON.stringify(cacheState)}`,
+        );
+        cacheState.deque = new Deque<Record>(cacheState.deque);
+        this.logger.log(
+            `Cache state after deque conversion: ${JSON.stringify(cacheState)}`,
+        );
+        return cacheState as CacheState;
     }
 
     private async expireRecords(cacheState: CacheState) {
+        this.logger.log(
+            `Expiring records for the cache state: ${JSON.stringify(
+                cacheState,
+            )}`,
+        );
         const currentTime = new Date().getTime();
         while (
             cacheState &&
@@ -71,6 +126,9 @@ export class MeanCacheProblemService {
             const expiredRecord = cacheState.deque.shift();
             cacheState.runningSum -= expiredRecord.value;
         }
-        await this.cacheManager.set(cacheState.fingerprint, cacheState);
+        await this.cacheManager.set(
+            cacheState.fingerprint,
+            JSON.stringify(cacheState),
+        );
     }
 }
