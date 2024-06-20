@@ -21,7 +21,7 @@ spec:
             - containerPort: 8000
           env:
             - name: KAFKA_REST_PROXY_URL
-              value: "kafka-controller.default.svc.cluster.local:9092"
+              value: "kafka.default.svc.cluster.local:9092"
 ---
 apiVersion: v1
 kind: Service
