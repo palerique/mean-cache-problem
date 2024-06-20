@@ -1,5 +1,4 @@
 #!/usr/bin/env bash
-set -e  # fail on any error
 set -x  # display commands being run
 
 # Install Redis

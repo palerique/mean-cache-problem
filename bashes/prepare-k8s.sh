@@ -1,5 +1,4 @@
 #!/usr/bin/env bash
-set -e  # fail on any error
 set -x  # display commands being run
 
 #kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml
