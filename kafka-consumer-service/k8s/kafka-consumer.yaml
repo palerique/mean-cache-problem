@@ -1,0 +1,61 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kafka-consumer-app
+spec:
+  selector:
+    matchLabels:
+      app: kafka-consumer-app
+  template:
+    metadata:
+      labels:
+        app: kafka-consumer-app
+    spec:
+      containers:
+        - name: kafka-consumer-service
+          image: br.com.palerique/mean-cache-problem-kafka-consumer-service:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8080
+          resources: # Setting resources limits/requests is needed for HPA to work
+            requests: # Example values, set as per your cluster's limits
+              cpu: "200m"
+              memory: "100Mi"
+            limits:
+              cpu: "500m"
+              memory: "500Mi"
+          env:
+            - name: SPRING_KAFKA_BOOTSTRAP_SERVERS
+              value: "redpanda-0:9092"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: kafka-consumer-service
+spec:
+  type: LoadBalancer
+  selector:
+    app: kafka-consumer-app
+  ports:
+    - protocol: TCP
+      port: 8080
+      targetPort: 8080
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: kafka-consumer-hpa
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: kafka-consumer-service
+  minReplicas: 1
+  maxReplicas: 20
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 50

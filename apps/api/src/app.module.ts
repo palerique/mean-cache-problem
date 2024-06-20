@@ -1,8 +1,8 @@
 import { Logger, Module } from '@nestjs/common';
-import { MeanCacheProblemModule } from './meanCacheProblem/meanCacheProblem.module';
 import { CacheModule } from '@nestjs/cache-manager';
 import * as redisStore from 'cache-manager-redis-store';
 import { KafkaModule } from './Kafka.module';
+import { MeanCacheProblemModule } from './meancacheproblem/meancacheproblem.module';
 
 @Module({
     imports: [

@@ -1,0 +1,36 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kafka-topic-viewer
+  labels:
+    app: kafka-topic-viewer
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kafka-topic-viewer
+  template:
+    metadata:
+      labels:
+        app: kafka-topic-viewer
+    spec:
+      containers:
+        - name: kafka-topic-viewer
+          image: webcenter/kafka-topic-ui
+          ports:
+            - containerPort: 8000
+          env:
+            - name: KAFKA_BROKERCONNECT
+              value: "kafka-kafka.default.svc.cluster.local:9092" # Use your kafka service
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: kafka-topic-viewer
+spec:
+  selector:
+    app: kafka-topic-viewer
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 8000

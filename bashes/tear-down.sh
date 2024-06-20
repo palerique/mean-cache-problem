@@ -10,13 +10,16 @@ kubectl get pods --all-namespaces
 echo "==========================================="
 kubectl delete -f apps/api/k8s/api.yaml || true
 kubectl delete -f apps/web/k8s/web.yaml || true
+kubectl delete -f kafka-consumer-service/k8s/kafka-consumer.yaml || true
 kubectl delete -f https://raw.githubusercontent.com/istio/istio/release-1.22/samples/addons/grafana.yaml || true
 kubectl delete -f https://raw.githubusercontent.com/istio/istio/release-1.22/samples/addons/prometheus.yaml || true
 kubectl delete -f https://raw.githubusercontent.com/istio/istio/release-1.22/samples/addons/kiali.yaml || true
 kubectl delete -f https://raw.githubusercontent.com/istio/istio/release-1.22/samples/addons/jaeger.yaml || true
 #kubectl delete -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml || true
 kubectl delete -f k8s/metrics-server.yaml || true
+kubectl delete -f k8s/kafka-topic-viewer.yaml
 helm uninstall redis || true
+helm uninstall kafka || true
 kubectl label namespace default istio-injection- || true
 istioctl uninstall --purge -y || true
 kubectl delete namespace istio-system || true

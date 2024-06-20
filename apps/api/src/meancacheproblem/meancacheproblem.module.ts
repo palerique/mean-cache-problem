@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
-import { MeanCacheProblemService } from './meanCacheProblem.service';
-import { MeanCacheProblemController } from './meanCacheProblem.controller';
+import { MeanCacheProblemController } from './meancacheproblem.controller';
+import { MeanCacheProblemService } from './meancacheproblem.service';
 
 @Module({
     controllers: [MeanCacheProblemController],
