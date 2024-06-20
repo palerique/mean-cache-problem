@@ -10,6 +10,6 @@ then
 fi
 
 # Build the Docker image
-docker build -f kafka-consumer-service/Dockerfile -t br.com.palerique/mean-cache-problem-kafka-consumer-service:latest . & \
+docker build -f kafka-consumer-service/Dockerfile -t br.com.palerique/mean-cache-problem-kafka-consumer-service:latest kafka-consumer-service  & \
 docker build -f apps/api/Dockerfile -t br.com.palerique/mean-cache-problem-api:latest . & \
 docker build -f apps/web/Dockerfile -t br.com.palerique/mean-cache-problem-web:latest .
