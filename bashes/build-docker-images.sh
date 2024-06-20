@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-set -e  # fail shouldAutoCalculateMean any error
+set -e  # fail on any error
 set -x  # display commands being run
 
 # Check if docker is installed
